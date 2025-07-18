@@ -1,0 +1,484 @@
+ 
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>熄灯游戏 - 自适应网格</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #2a4d69);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        header {
+            margin-bottom: 30px;
+            padding: 25px;
+            border-radius: 16px;
+            background: rgba(0, 0, 0, 0.25);
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(5px);
+        }
+        
+        h1 {
+            font-size: 3.2rem;
+            margin-bottom: 15px;
+            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            color: #FFD700;
+            background: linear-gradient(to right, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .controls-top {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .size-control {
+            background: rgba(0, 0, 0, 0.25);
+            padding: 15px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .size-control label {
+            font-weight: bold;
+        }
+        
+        .size-control input {
+            width: 70px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+        }
+        
+        .game-info {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: 30px 0;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 14px;
+            font-size: 1.3rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .status {
+            font-weight: bold;
+            padding: 10px 25px;
+            border-radius: 30px;
+            background: rgba(0, 0, 0, 0.45);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .game-board-container {
+            background: rgba(0, 0, 0, 0.25);
+            padding: 25px;
+            border-radius: 20px;
+            margin: 20px auto;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+        }
+        
+        .game-board {
+            display: inline-grid;
+            gap: 10px;
+            margin: 0 auto;
+        }
+        
+        .light {
+            width: 70px;
+            height: 70px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .light.on {
+            background: radial-gradient(circle at 30% 30%, #FFD700, #FF8C00);
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.8);
+        }
+        
+        .light.off {
+            background: radial-gradient(circle at 30% 30%, #2c3e50, #1a1a2e);
+        }
+        
+        .light::after {
+            content: '';
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            top: 20%;
+            left: 20%;
+        }
+        
+        .light.on::after {
+            background: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+        }
+        
+        .controls {
+            margin: 25px 0;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background: linear-gradient(to bottom, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.1rem;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            min-width: 140px;
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            background: linear-gradient(to bottom, #3cb0fd, #3498db);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        .instructions {
+            background: rgba(0, 0, 0, 0.25);
+            padding: 25px;
+            border-radius: 16px;
+            margin: 25px 0;
+            line-height: 1.6;
+            text-align: left;
+        }
+        
+        .instructions h2 {
+            color: #FFD700;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.8rem;
+        }
+        
+        .instructions ul {
+            padding-left: 30px;
+            font-size: 1.1rem;
+        }
+        
+        .instructions li {
+            margin-bottom: 12px;
+            padding-left: 10px;
+        }
+        
+        footer {
+            margin-top: auto;
+            padding: 20px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .light {
+                width: 60px;
+                height: 60px;
+            }
+            
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .controls-top {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            button {
+                padding: 10px 20px;
+                font-size: 1rem;
+                min-width: 120px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .light {
+                width: 50px;
+                height: 50px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .game-info {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .instructions ul {
+                padding-left: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>熄灯游戏</h1>
+            <p>将所有灯熄灭即可获胜！</p>
+        </header>
+        
+        <div class="controls-top">
+            <div class="size-control">
+                <label for="grid-size">网格尺寸:</label>
+                <input type="number" id="grid-size" min="3" max="8" value="5">
+            </div>
+            <div class="size-control">
+                <label for="light-size">格子大小:</label>
+                <input type="number" id="light-size" min="40" max="100" value="70">
+            </div>
+            <button id="apply-size">应用尺寸</button>
+        </div>
+        
+        <div class="game-info">
+            <div class="moves">步数: <span id="move-count">0</span></div>
+            <div class="status">状态: <span id="game-status">游戏中</span></div>
+        </div>
+        
+        <div class="game-board-container">
+            <div class="game-board" id="game-board"></div>
+        </div>
+        
+        <div class="controls">
+            <button id="new-game">新游戏</button>
+            <button id="solve">提示</button>
+            <button id="reset">重置</button>
+        </div>
+        
+        <div class="instructions">
+            <h2>游戏规则与说明</h2>
+            <ul>
+                <li><strong>网格尺寸</strong>：可自由调整网格的大小（3×3 到 8×8）</li>
+                <li><strong>格子大小</strong>：可调整每个格子的大小（40px 到 100px）</li>
+                <li><strong>游戏目标</strong>：将所有灯熄灭（全部变为深色）</li>
+                <li><strong>操作方式</strong>：点击任意一盏灯将切换该灯以及上下左右相邻灯的状态</li>
+                <li><strong>状态指示</strong>：黄色代表灯亮，深色代表灯灭</li>
+                <li><strong>提示功能</strong>："提示"按钮会随机熄灭一盏灯</li>
+                <li><strong>策略技巧</strong>：从左上角开始逐行解决，注意连锁反应</li>
+            </ul>
+        </div>
+        
+        <footer>
+            <p>© 2023 熄灯游戏 | 自适应网格解决方案 | 经典逻辑益智游戏</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const board = document.getElementById('game-board');
+            const moveCountElement = document.getElementById('move-count');
+            const gameStatusElement = document.getElementById('game-status');
+            const newGameButton = document.getElementById('new-game');
+            const solveButton = document.getElementById('solve');
+            const resetButton = document.getElementById('reset');
+            const gridSizeInput = document.getElementById('grid-size');
+            const lightSizeInput = document.getElementById('light-size');
+            const applySizeButton = document.getElementById('apply-size');
+            
+            let moveCount = 0;
+            let gridSize = 5;
+            let lightSize = 70;
+            let gameBoard = [];
+            
+            // 初始化游戏
+            function initGame() {
+                board.innerHTML = '';
+                moveCount = 0;
+                moveCountElement.textContent = moveCount;
+                gameStatusElement.textContent = '游戏中';
+                gameStatusElement.style.color = '#ffffff';
+                gameBoard = [];
+                
+                // 设置网格样式
+                board.style.gridTemplateColumns = `repeat(${gridSize}, ${lightSize}px)`;
+                board.style.gridTemplateRows = `repeat(${gridSize}, ${lightSize}px)`;
+                
+                // 创建初始随机状态（确保有解）
+                for (let i = 0; i < gridSize; i++) {
+                    gameBoard[i] = [];
+                    for (let j = 0; j < gridSize; j++) {
+                        // 随机生成灯的状态（65%点亮）
+                        gameBoard[i][j] = Math.random() > 0.35;
+                    }
+                }
+                
+                // 渲染游戏板
+                renderBoard();
+            }
+            
+            // 渲染游戏板
+            function renderBoard() {
+                for (let i = 0; i < gridSize; i++) {
+                    for (let j = 0; j < gridSize; j++) {
+                        const light = document.createElement('div');
+                        light.className = `light ${gameBoard[i][j] ? 'on' : 'off'}`;
+                        light.dataset.row = i;
+                        light.dataset.col = j;
+                        light.style.width = `${lightSize}px`;
+                        light.style.height = `${lightSize}px`;
+                        light.addEventListener('click', () => toggleLights(i, j));
+                        board.appendChild(light);
+                    }
+                }
+            }
+            
+            // 切换灯的状态
+            function toggleLights(row, col) {
+                if (gameStatusElement.textContent.includes('胜利')) return;
+                
+                // 切换点击的灯
+                gameBoard[row][col] = !gameBoard[row][col];
+                
+                // 切换上方灯
+                if (row > 0) gameBoard[row-1][col] = !gameBoard[row-1][col];
+                // 切换下方灯
+                if (row < gridSize-1) gameBoard[row+1][col] = !gameBoard[row+1][col];
+                // 切换左侧灯
+                if (col > 0) gameBoard[row][col-1] = !gameBoard[row][col-1];
+                // 切换右侧灯
+                if (col < gridSize-1) gameBoard[row][col+1] = !gameBoard[row][col+1];
+                
+                // 更新移动计数
+                moveCount++;
+                moveCountElement.textContent = moveCount;
+                
+                // 重新渲染板
+                updateBoard();
+                
+                // 检查胜利条件
+                if (checkWin()) {
+                    gameStatusElement.textContent = '胜利！';
+                    gameStatusElement.style.color = '#4CAF50';
+                    setTimeout(() => {
+                        alert(`恭喜！你成功在${moveCount}步内完成了${gridSize}×${gridSize}的熄灯游戏！`);
+                    }, 300);
+                }
+            }
+            
+            // 更新板而不重新创建所有元素
+            function updateBoard() {
+                const lights = document.querySelectorAll('.light');
+                let index = 0;
+                
+                for (let i = 0; i < gridSize; i++) {
+                    for (let j = 0; j < gridSize; j++) {
+                        lights[index].className = `light ${gameBoard[i][j] ? 'on' : 'off'}`;
+                        index++;
+                    }
+                }
+            }
+            
+            // 检查是否获胜（所有灯都熄灭）
+            function checkWin() {
+                for (let i = 0; i < gridSize; i++) {
+                    for (let j = 0; j < gridSize; j++) {
+                        if (gameBoard[i][j]) return false;
+                    }
+                }
+                return true;
+            }
+            
+            // 提示功能：随机熄灭一盏灯
+            function giveHint() {
+                if (checkWin()) return;
+                
+                // 找到所有亮着的灯
+                const litLights = [];
+                for (let i = 0; i < gridSize; i++) {
+                    for (let j = 0; j < gridSize; j++) {
+                        if (gameBoard[i][j]) {
+                            litLights.push({row: i, col: j});
+                        }
+                    }
+                }
+                
+                if (litLights.length > 0) {
+                    // 随机选择一盏亮着的灯
+                    const randomLight = litLights[Math.floor(Math.random() * litLights.length)];
+                    toggleLights(randomLight.row, randomLight.col);
+                }
+            }
+            
+            // 应用新尺寸
+            function applyNewSize() {
+                const newSize = parseInt(gridSizeInput.value);
+                const newLightSize = parseInt(lightSizeInput.value);
+                
+                if (isNaN(newSize) || newSize < 3 || newSize > 8) {
+                    alert("网格尺寸必须在3到8之间");
+                    return;
+                }
+                
+                if (isNaN(newLightSize) || newLightSize < 40 || newLightSize > 100) {
+                    alert("格子大小必须在40到100之间");
+                    return;
+                }
+                
+                gridSize = newSize;
+                lightSize = newLightSize;
+                initGame();
+            }
+            
+            // 事件监听器
+            newGameButton.addEventListener('click', initGame);
+            solveButton.addEventListener('click', giveHint);
+            resetButton.addEventListener('click', initGame);
+            applySizeButton.addEventListener('click', applyNewSize);
+            
+            // 初始化游戏
+            initGame();
+        });
+    </script>
+</body>
+</html>
+ 
